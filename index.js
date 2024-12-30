@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config()
 const { connectDB, getDB } = require('./db');
 const feedbackRoutes = require('./routes/feedbackRoutes');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 
@@ -40,6 +40,24 @@ async function run() {
             res.status(500).json({ message: 'Error submitting feedback' });
         }
     })
+
+    app.delete("/api/feedback/:id", async (req, res) => {
+          const { id } = req.params; // Get the ID from the request parameters
+        
+          try {
+            const result = await feedbackColl.deleteOne({ _id: new ObjectId(id) });
+        
+            // Check if the feedback was found and deleted
+            if (result.deletedCount === 0) {
+              return res.status(404).json({ message: 'Feedback not found' });
+            }
+        
+            res.status(200).json({ message: 'Feedback deleted successfully' });
+          } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Server error' });
+          }
+        })
 }
 
 run().catch(err => console.log(err))
