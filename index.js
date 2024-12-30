@@ -18,19 +18,6 @@ connectDB();
 // Routes
 app.use('/api/feedback', feedbackRoutes);
 
-// Public route to log in (Firebase will handle authentication)
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        // Perform login with Firebase Authentication - Firebase does this automatically
-        const userRecord = await admin.auth().getUserByEmail(email);
-        res.json({ message: `Welcome, ${userRecord.email}` });
-    } catch (error) {
-        res.status(401).json({ error: 'Authentication failed' });
-    }
-});
-
 // Public route for summary
 app.get('/summary', (req, res) => {
     const summaryData = [
