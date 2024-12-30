@@ -41,6 +41,14 @@ app.get('/summary', (req, res) => {
     res.json({ summary: summaryData });
 });
 
+app.get('/', (req, res) => {
+    res.send('RateIsExperience server is running')
+});
+
+app.all("*", (req, res)=>{
+    res.send("No routes found")
+})
+
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
