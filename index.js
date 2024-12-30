@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config()
 const { connectDB, getDB } = require('./db');
 const feedbackRoutes = require('./routes/feedbackRoutes');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
 
@@ -13,32 +14,36 @@ app.use(cors());
 app.use(express.json())
 
 // Connect to MongoDB
-connectDB();
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.gp7ekja.mongodb.net/?retryWrites=true&w=majority`;
+// const uri = 'mongodb://localhost:27017';
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-// Public route for summary
-app.get('/api/feedback/all', async (req, res) => {
-    const db = getDB();
-    const feedbackColl = db.collection("feedbacks")
-    const feedbacks = await feedbackColl.find({}).toArray();
-    console.log(feedbacks);
-    res.send(feedbacks);
-})
+async function run() {
+    const feedbackColl = client.db("fahad-feedback").collection("feedbacks");
 
-app.post('/submit', async (req, res) => {
-    try {
-        const db = getDB();
-        const feedbackCollection = db.collection('feedbacks'); // Feedback collection
-        const feedbackData = req.body;
+    app.get('/api/feedback/all', async (req, res) => {
+        const feedbacks = await feedbackColl.find({}).toArray();
+        console.log(feedbacks);
+        res.send(feedbacks);
+    })
 
-        // Insert feedback data into the MongoDB collection
-        await feedbackCollection.insertOne(feedbackData);
+    app.post('/api/feedback/submit', async (req, res) => {
+        try {
+            const feedbackData = req.body;
+    
+            // Insert feedback data into the MongoDB collection
+            await feedbackColl.insertOne(feedbackData);
+    
+            res.status(201).json({ message: 'Feedback submitted successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error submitting feedback' });
+        }
+    })
+}
 
-        res.status(201).json({ message: 'Feedback submitted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error submitting feedback' });
-    }
-})
+run().catch(err => console.log(err))
+
 
 app.get('/', (req, res) => {
     res.send('RateIsExperience server is running')
