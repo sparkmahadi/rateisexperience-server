@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json())
 
 // Connect to MongoDB
 connectDB();
